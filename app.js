@@ -313,7 +313,7 @@ function parseWorkbook(workbook, fileName) {
     });
     const sourceUnit = inferSourceUnit(rows, fileName, sheetName);
     const yellowResult = parseYellowMarkedSheet(sheet, rows, fileName, sheetName, sourceUnit);
-    if (yellowResult.markedRows > 0) {
+    if (yellowResult.markedRows > 0 && yellowResult.records.length > 0) {
       records.push(...yellowResult.records);
       issues.push(...yellowResult.issues);
       sheetResults.push({
@@ -330,15 +330,17 @@ function parseWorkbook(workbook, fileName) {
       });
       return;
     }
+    const ignoredIncompleteYellowRows = yellowResult.markedRows > 0 ? yellowResult.incompleteRows : 0;
 
     const headerInfo = findHeader(rows);
     if (!headerInfo) {
+      if (yellowResult.markedRows > 0) issues.push(...yellowResult.issues);
       sheetResults.push({
         fileName,
         sheetName,
-        status: "跳过",
+        status: yellowResult.markedRows > 0 ? "黄底不完整" : "跳过",
         rows: 0,
-        reason: "没有同时找到姓名、卡号、金额字段",
+        reason: yellowResult.markedRows > 0 ? "黄底标记不完整，且没有同时找到姓名、卡号、金额字段" : "没有同时找到姓名、卡号、金额字段",
       });
       return;
     }
@@ -388,10 +390,11 @@ function parseWorkbook(workbook, fileName) {
       sheetName,
       status: sheetRecords.length ? "已识别" : "空明细",
       rows: sheetRecords.length,
-      reason: `${sheetRecords.length ? `表头第 ${headerInfo.rowIndex + 1} 行` : "没有完整明细行"}${ignoredRows ? `，已忽略 ${ignoredRows} 行非明细金额行` : ""}`,
+      reason: `${sheetRecords.length ? `表头第 ${headerInfo.rowIndex + 1} 行` : "没有完整明细行"}${ignoredRows ? `，已忽略 ${ignoredRows} 行非明细金额行` : ""}${ignoredIncompleteYellowRows ? `，忽略 ${ignoredIncompleteYellowRows} 行不完整黄底` : ""}`,
       columns: headerInfo.columns,
       extractionMode: "自动识别",
       ignoredRows,
+      incompleteRows: ignoredIncompleteYellowRows,
     });
   });
 
