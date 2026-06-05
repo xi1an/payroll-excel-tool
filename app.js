@@ -1,8 +1,8 @@
 const aliases = {
-  payee: ["收款人", "收款户名", "开户名", "开户人", "户名", "持卡人", "领款人", "代领人", "监护人", "母亲姓名", "父亲姓名", "人员名单"],
+  payee: ["收款人", "收款户名", "开户名", "开户人", "户名", "户主", "持卡人", "领款人", "代领人", "监护人", "母亲姓名", "父亲姓名", "人员名单"],
   beneficiary: ["补助对象", "受益人", "享受人", "学生姓名", "儿童姓名", "孩子姓名", "人员姓名"],
   name: ["姓名", "名字"],
-  card: ["社保卡号", "银行卡", "银行卡号", "银行账号", "账号", "卡号", "一卡通"],
+  card: ["社保卡号", "银行卡", "银行卡号", "银行卡账号", "银行卡帐号", "银行账号", "银行帐号", "银行账户", "收款账号", "收款帐号", "收款账户", "账户", "账号", "帐号", "卡号", "户号", "一卡通"],
   amount: ["应发金额", "实发金额", "发放金额", "申请金额", "金额", "小计", "合计", "总计", "报酬", "工资", "补贴"],
   idNo: ["身份证号", "身份证号码", "证件号", "居民身份证"],
   unit: ["单位", "乡镇", "乡镇街道", "村居", "村", "部门"],
@@ -540,6 +540,7 @@ function scoreNameColumn(headerText, profile) {
 function scoreCardColumn(headerText, profile) {
   let score = 0;
   if (matchesAnyAlias(headerText, aliases.card)) score += 8;
+  if (matchesAnyAlias(headerText, aliases.idNo)) score -= 8;
   if (profile.total >= 1 && profile.cardLike / profile.total >= 0.6) score += 7;
   else if (profile.cardLike >= 1) score += 5;
   if (profile.nameLike) score -= 4;
@@ -748,8 +749,10 @@ function scoreCardHeader(header, value) {
   const text = clean(header);
   let score = 0;
   if (aliases.card.some((word) => text.includes(word))) score += 4;
+  if (aliases.idNo.some((word) => text.includes(word))) score -= 4;
   if (isCardText(value)) score += 3;
   if (/^\d{12,30}$/.test(normalizeCard(value))) score += 2;
+  if (isLikelyAccountText(value)) score += 1;
   if (Number.isFinite(parseAmount(value)) && !/^\d{12,30}$/.test(normalizeCard(value))) score -= 2;
   return score;
 }
@@ -770,11 +773,19 @@ function scoreAmountHeader(header) {
 }
 
 function findNearestHeader(rows, rowIndex, colIndex) {
-  for (let current = rowIndex - 1; current >= Math.max(0, rowIndex - 10); current -= 1) {
+  let fallback = "";
+  for (let current = rowIndex - 1; current >= Math.max(0, rowIndex - 200); current -= 1) {
     const text = clean(rows[current]?.[colIndex]);
-    if (text) return text;
+    if (!text) continue;
+    if (!fallback) fallback = text;
+    if (isLikelyHeaderText(text)) return text;
   }
-  return "";
+  return fallback;
+}
+
+function isLikelyHeaderText(text) {
+  const normalized = stripInnerSpaces(text);
+  return Object.values(aliases).some((words) => words.some((word) => normalized.includes(word))) || /^(序号|编号|户主|户号|账户|账号|帐号|姓名|名字|金额|备注|小计|合计)$/.test(normalized);
 }
 
 function isYellowCell(cell) {
@@ -790,6 +801,11 @@ function isYellowCell(cell) {
 
 function isCardText(value) {
   return /^(?:\d{19}|\d{23})$/.test(normalizeCard(value));
+}
+
+function isLikelyAccountText(value) {
+  const normalized = normalizeCard(value);
+  return /^[0-9A-Za-z]{12,30}$/.test(normalized) && /\d{8,}/.test(normalized);
 }
 
 function isNameText(value) {
