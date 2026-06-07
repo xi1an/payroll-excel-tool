@@ -5,16 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>代发工资表识别台</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./styles.css?v=20260605-cardwarn" />
+    <link rel="stylesheet" href="./styles.css?v=20260607-nologo" />
   </head>
   <body>
     <div class="app">
       <aside class="rail">
         <div class="brand">
-          <span class="brand-mark">薪</span>
           <div>
             <h1>代发工资表识别台</h1>
-            <p>本地解析 · 批量提取 · 统一导出</p>
+            <p>导入 · 预审 · 修正 · 导出</p>
           </div>
         </div>
         <nav class="steps" aria-label="处理步骤">
@@ -44,8 +43,9 @@
       <main class="workspace">
         <header class="topbar">
           <div>
-            <p class="label">工资代发电子表标准化</p>
-            <h2>批量识别收款人、卡号和金额</h2>
+            <p class="label">批量代发前处理台</p>
+            <h2>导入原表后，先看导出预览和问题清单</h2>
+            <p class="topbar-subtitle">按来源表和 sheet 拆分明细，支持单位修正、续发标记、异常卡号标黄和汇总表统计。</p>
           </div>
           <div class="actions">
             <label class="project-control">
@@ -69,20 +69,34 @@
                 accept=".xls,.xlsx,.csv,.zip"
                 multiple
               />
-              <div class="upload-icon">⇧</div>
-              <h3>拖入工资表或压缩包</h3>
-              <p>支持 .xls、.xlsx、.csv、.zip；导出时按来源表和 sheet 拆成多份 Excel，并附汇总表。</p>
+              <div class="upload-icon">表</div>
+              <div class="upload-copy">
+                <h3>拖入工资表或压缩包</h3>
+                <p>支持 .xls、.xlsx、.csv、.zip；导入后直接生成每张待导出 Excel 的预览卡片。</p>
+                <div class="upload-hints" aria-label="导入规则提示">
+                  <span>黄底优先</span>
+                  <span>多 sheet 自动拆分</span>
+                  <span>原始压缩包随导出保留</span>
+                </div>
+              </div>
               <button class="button primary" id="pickButton">选择电子表</button>
+            </section>
+
+            <section class="workflow-strip" aria-label="处理流程">
+              <div><strong>1</strong><span>导入原始表格</span></div>
+              <div><strong>2</strong><span>查看导出预览</span></div>
+              <div><strong>3</strong><span>修正单位和续发</span></div>
+              <div><strong>4</strong><span>导出明细和汇总</span></div>
             </section>
 
             <section class="summary">
               <div>
                 <span class="metric" id="fileCount">0</span>
-                <p>文件</p>
+                <p>导入文件</p>
               </div>
               <div>
                 <span class="metric" id="sheetCount">0</span>
-                <p>已识别 sheet</p>
+                <p>可导出 sheet</p>
               </div>
               <div>
                 <span class="metric" id="recordCount">0</span>
@@ -163,19 +177,19 @@
               <dl class="rules">
                 <div>
                   <dt>收款人</dt>
-                  <dd>收款人、开户名、户名、持卡人、监护人、母亲姓名、父亲姓名；黄底标记会优先提取</dd>
+                  <dd>识别收款人、开户名、户主、持卡人、监护人、母亲姓名、父亲姓名；黄底完整标记优先提取</dd>
                 </div>
                 <div>
                   <dt>卡号</dt>
-                  <dd>社保卡号（银行卡）、银行卡号、账号、卡号；默认 19 位或 23 位数字</dd>
+                  <dd>识别银行卡号、户号、账号、账户；非 19 位或 23 位不剔除，导出时标黄复核</dd>
                 </div>
                 <div>
                   <dt>金额</dt>
-                  <dd>应发金额、实发金额、报酬、工资、补贴；金额为 0 正常保留</dd>
+                  <dd>识别应发金额、实发金额、报酬、工资、补贴；金额为 0 正常保留，末尾合计行自动剔除</dd>
                 </div>
                 <div>
                   <dt>代发单位</dt>
-                  <dd>导出文件名会按本地单位全称和简称词库模糊匹配</dd>
+                  <dd>按本地单位全称、简称和乡镇村居词库匹配，支持在导出卡片里手动修正</dd>
                 </div>
                 <div>
                   <dt>字段复核</dt>
@@ -202,7 +216,7 @@
 
     <script src="./vendor/jszip.min.js"></script>
     <script src="./vendor/xlsx.full.min.js"></script>
-    <script src="./unit-reference.js?v=20260605-cardwarn"></script>
-    <script src="./app.js?v=20260605-cardwarn"></script>
+    <script src="./unit-reference.js?v=20260607-nologo"></script>
+    <script src="./app.js?v=20260607-nologo"></script>
   </body>
 </html>

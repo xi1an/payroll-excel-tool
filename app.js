@@ -1016,6 +1016,8 @@ function renderRecords() {
     .map((record) => {
       const hasError = record.issues.some((issue) => issue.level === "error");
       const hasWarning = record.issues.length > 0;
+      const statusClass = hasError ? "error" : hasWarning ? "warn" : "ok";
+      const statusText = hasError ? `${record.issues.length} 项错误` : hasWarning ? "需复核" : "正常";
       return `
         <tr>
           <td>${escapeHtml(record.name)}</td>
@@ -1024,7 +1026,7 @@ function renderRecords() {
           <td class="amount">${formatAmount(record.amount)}</td>
           <td>${escapeHtml(record.unit)}</td>
           <td>${escapeHtml(record.sheetName)} · ${record.rowNumber} 行</td>
-          <td><span class="chip ${hasError ? "warn" : "ok"}">${hasError ? `${record.issues.length} 项问题` : hasWarning ? "需复核" : "正常"}</span></td>
+          <td><span class="chip ${statusClass}">${statusText}</span></td>
         </tr>
       `;
     })
